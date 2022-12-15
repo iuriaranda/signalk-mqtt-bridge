@@ -16,9 +16,16 @@ services:
       - "3000:3000"
     volumes:
       - signalk:/home/node/.signalk/
-      - ./:/home/node/.signalk/node_modules/signalk-mqtt-bridge
+      - ./:/usr/lib/node_modules/signalk-mqtt-bridge
     environment:
       - DEBUG=signalk-mqtt-bridge,signalk-server:put,signalk-server:interfaces:plugins
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        cd /home/node/.signalk/
+        npm link signalk-mqtt-bridge
+        /home/node/signalk/startup.sh
     restart: always
 volumes:
   mosquitto-config:

@@ -1,0 +1,27 @@
+version: "3"
+services:
+  mosquitto:
+    image: eclipse-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - mosquitto-config:/mosquitto/config
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+    restart: always
+  signalk:
+    image: signalk/signalk-server
+    ports:
+      - "3000:3000"
+    volumes:
+      - signalk:/home/node/.signalk/
+      - ./:/home/node/.signalk/node_modules/signalk-mqtt-bridge
+    environment:
+      - DEBUG=signalk-mqtt-bridge,signalk-server:put,signalk-server:interfaces:plugins
+    restart: always
+volumes:
+  mosquitto-config:
+  mosquitto-data:
+  mosquitto-log:
+  signalk:

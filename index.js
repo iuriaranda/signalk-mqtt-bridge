@@ -104,11 +104,21 @@ module.exports = function (app) {
     plugin.client.subscribe('W/signalk/' + plugin.systemId + '/#');
     plugin.client.subscribe('P/signalk/' + plugin.systemId + '/#');
 
+    // Periodically publish keepalive and system id
+    setInterval(publishKeepalive, 10000);
+    publishKeepalive();
+  }
+
+  function publishKeepalive() {
     // Indicate that the keepalive mechanism is supported
-    plugin.client.publish('N/signalk/' + plugin.systemId + '/keepalive', '1');
+    publishMqtt('N/signalk/' + plugin.systemId + '/keepalive', '1', {
+      retain: true
+    });
 
     // Publish serial number
-    plugin.client.publish('N/signalk/' + plugin.systemId + '/system/Serial', plugin.systemId);
+    publishMqtt('N/signalk/' + plugin.systemId + '/system/Serial', plugin.systemId, {
+      retain: true
+    });
   }
 
   // Handle incomming MQTT messages
@@ -177,7 +187,7 @@ module.exports = function (app) {
     app.debug('Got delta for topic ' + subTopic);
 
     // Publish message
-    plugin.client.publish('N/signalk/' + plugin.systemId + '/' + subTopic, signalkDeltaToMqttMessage(delta));
+    publishMqtt('N/signalk/' + plugin.systemId + '/' + subTopic, signalkDeltaToMqttMessage(delta));
   }
 
   // Handles writes from MQTT into SignalK
@@ -242,7 +252,7 @@ module.exports = function (app) {
       data = app.getPath(path);
     }
 
-    plugin.client.publish('N/signalk/' + plugin.systemId + '/' + topic, signalkDataToMqttMessage(data));
+    publishMqtt('N/signalk/' + plugin.systemId + '/' + topic, signalkDataToMqttMessage(data));
   }
 
   // Add MQTT subscription to deltas
@@ -335,6 +345,13 @@ module.exports = function (app) {
   // Gets the current timestamp in seconds
   function getNow() {
     return Math.floor(Date.now() / 1000);
+  }
+
+  // Publish MQTT message only if broker is connected, drop it otherwise
+  function publishMqtt(topic, message, options = {}) {
+    if (plugin.client.connected) {
+      plugin.client.publish(topic, message, options);
+    }
   }
 
   return plugin;

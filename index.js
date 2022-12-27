@@ -110,19 +110,6 @@ module.exports = function (app) {
     plugin.client.subscribe('W/signalk/' + plugin.systemId + '/#');
     plugin.client.subscribe('P/signalk/' + plugin.systemId + '/#');
 
-    // Periodically publish keepalive and system id
-    if (plugin.publishKeepaliveInterval === undefined) {
-      plugin.publishKeepaliveInterval = setInterval(publishKeepalive, 10000);
-      plugin.onStop.push(() => {
-        clearInterval(plugin.publishKeepaliveInterval);
-        plugin.publishKeepaliveInterval = undefined;
-      });
-    }
-
-    publishKeepalive();
-  }
-
-  function publishKeepalive() {
     // Indicate that the keepalive mechanism is supported
     publishMqtt('N/signalk/' + plugin.systemId + '/keepalive', '1', {
       retain: true

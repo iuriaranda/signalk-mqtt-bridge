@@ -60,10 +60,22 @@ module.exports = function (app) {
     plugin.onStop.push(_ => plugin.client.end());
 
     // Handle errors
-    plugin.client.on('error', (err) => app.error(err));
+    plugin.client.on('error', (err) => {
+      app.error(`Error connecting to MQTT broker: ${err}`);
+      app.setPluginError(`Error connecting to MQTT broker: ${err}`);
+    });
 
     // Start bridge when MQTT client is connected
-    plugin.client.on('connect', startBridge);
+    plugin.client.on('connect', () => {
+      app.debug('MQTT connected');
+      app.setPluginStatus('MQTT Connected');
+      startBridge();
+    });
+
+    plugin.client.on('close', () => {
+      app.debug('MQTT connection closed');
+      app.setPluginError('MQTT connection closed');
+    });
 
     // Handle incoming MQTT messages
     plugin.client.on('message', onMessage);
@@ -88,8 +100,6 @@ module.exports = function (app) {
 
   // Handle MQTT client connections or reconnections
   function startBridge() {
-    app.debug('MQTT connected');
-
     plugin.client.subscribe('R/signalk/' + plugin.systemId + '/#');
     plugin.client.subscribe('W/signalk/' + plugin.systemId + '/#');
     plugin.client.subscribe('P/signalk/' + plugin.systemId + '/#');

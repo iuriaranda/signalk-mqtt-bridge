@@ -1,13 +1,13 @@
 {
   "name": "signalk-mqtt-bridge",
-  "version": "0.1.0",
-  "description": "Signal K server plugin that provides gateway functionality between Signal K and MQTT",
+  "version": "0.1.1",
+  "description": "SignalK Node server plugin that acts as a bridge between SignalK data and MQTT",
   "main": "index.js",
   "keywords": [
     "signalk-node-server-plugin",
     "signalk-category-utility"
   ],
-  "author": "iuri.aranda@gmail.com",
+  "author": "Iuri Aranda <iuri.aranda@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "mqtt": "^4.3.7",

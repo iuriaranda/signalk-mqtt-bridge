@@ -81,7 +81,13 @@ module.exports = function (app) {
     plugin.client.on('message', onMessage);
 
     // Remove stale subscriptions each second
-    setInterval(expireSubscriptions, 1000);
+    if (plugin.expireSubscriptionsInterval === undefined) {
+      plugin.expireSubscriptionsInterval = setInterval(expireSubscriptions, 1000);
+      plugin.onStop.push(() => {
+        clearInterval(plugin.expireSubscriptionsInterval);
+        plugin.expireSubscriptionsInterval = undefined;
+      });
+    }
 
     // Setup SignalK delta subscription
     plugin.onStop.push(app.streambundle
@@ -105,7 +111,14 @@ module.exports = function (app) {
     plugin.client.subscribe('P/signalk/' + plugin.systemId + '/#');
 
     // Periodically publish keepalive and system id
-    setInterval(publishKeepalive, 10000);
+    if (plugin.publishKeepaliveInterval === undefined) {
+      plugin.publishKeepaliveInterval = setInterval(publishKeepalive, 10000);
+      plugin.onStop.push(() => {
+        clearInterval(plugin.publishKeepaliveInterval);
+        plugin.publishKeepaliveInterval = undefined;
+      });
+    }
+
     publishKeepalive();
   }
 

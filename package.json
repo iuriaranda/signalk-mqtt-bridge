@@ -1,6 +1,6 @@
 {
   "name": "signalk-mqtt-bridge",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "SignalK Node server plugin that acts as a bridge between SignalK data and MQTT",
   "main": "index.js",
   "keywords": [

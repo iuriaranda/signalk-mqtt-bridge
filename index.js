@@ -8,7 +8,10 @@ module.exports = function (app) {
   plugin.name = 'Bridge between SignalK and MQTT';
   plugin.description = 'SignalK Node server plugin that acts as a bridge between SignalK data and MQTT';
 
-  plugin.systemId = app.selfId.split("-").pop(); // Get last segment of self id
+  // Infer system id
+  // If mmsi is set, this will match the mmsi
+  // If mmsi is not set, this will be the last segment of the generated uuid
+  plugin.systemId = app.selfId.split(':').pop().split('-').pop();
 
   plugin.schema = {
     title: 'SignalK <> MQTT Bridge',

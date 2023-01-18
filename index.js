@@ -17,6 +17,7 @@ module.exports = function (app) {
     title: 'SignalK <> MQTT Bridge',
     type: 'object',
     required: ['mqttBrokerAddress'],
+    description: `SignalK will use system id ${plugin.systemId} to interact with MQTT`,
     properties: {
       mqttBrokerAddress: {
         type: "string",

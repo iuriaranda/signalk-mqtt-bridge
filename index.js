@@ -173,6 +173,15 @@ module.exports = function (app) {
 
   // Handles an incoming delta from SignalK
   function handleDelta(delta) {
+    if (
+      !('context' in delta) || typeof delta.context !== 'string' ||
+      !('path' in delta) || typeof delta.path !== 'string' ||
+      !('value' in delta)
+    ) {
+      app.debug('Malformed delta. Ignoring. ' + JSON.stringify(delta));
+      return;
+    }
+
     var subTopic;
     if (delta.context == 'vessels.' + app.selfId) {
       subTopic = 'vessels/self/' + signalkPathToMqttTopic(delta.path);

@@ -1,6 +1,6 @@
 {
   "name": "signalk-mqtt-bridge",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "SignalK Node server plugin that acts as a bridge between SignalK data and MQTT",
   "main": "index.js",
   "keywords": [
@@ -12,5 +12,13 @@
   "dependencies": {
     "mqtt": "^4.3.7",
     "underscore": "^1.13.6"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iuriaranda/signalk-mqtt-bridge"
+  },
+  "bugs": {
+    "url": "https://github.com/iuriaranda/signalk-mqtt-bridge/issues"
+  },
+  "homepage": "https://github.com/iuriaranda/signalk-mqtt-bridge"
 }

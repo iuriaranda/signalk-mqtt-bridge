@@ -22,7 +22,7 @@ All MQTT topics used by this plugin are prefixed with `<action>/signalk/<systemI
 - `<action>` defines the purpose of the topic, defined in the sections below
   - `N`: data sent from SignalK
   - `R`: read requests sent from MQTT clients to SignalK
-  - `D`: deltas sent from MQTT clients to SignalK
+  - `W`: deltas sent from MQTT clients to SignalK
   - `P`: PUT requests sent from MQTT clients to SignalK
 
 When it connects to an MQTT broker, the plugin will publish two messages:
@@ -82,10 +82,10 @@ mosquitto_pub -m '' -t 'R/signalk/4881db477e55/vessels/self/environment/depth/be
 
 ## Send deltas to SignalK via MQTT
 
-To send deltas to SignalK via MQTT, publish a message with the `D/` topic prefix, with the delta value as payload. For example:
+To send deltas to SignalK via MQTT, publish a message with the `W/` topic prefix, with the delta value as payload. For example:
 
 ```bash
-mosquitto_pub -m '10' -t 'D/signalk/4881db477e55/vessels/self/environment/wind/speedApparent'
+mosquitto_pub -m '10' -t 'W/signalk/4881db477e55/vessels/self/environment/wind/speedApparent'
 ```
 
 ## Send PUT requests to SignalK via MQTT

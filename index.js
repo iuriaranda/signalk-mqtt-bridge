@@ -330,12 +330,12 @@ module.exports = function (app) {
 
   // Translates a Signalk Path into an MQTT topic
   function signalkPathToMqttTopic(path) {
-    return path.replaceAll('.', '/');
+    return path.replace(/\./g, '/');
   }
 
   // Translates an MQTT topic into a Signalk Path
   function mqttTopicToSignalkPath(topic) {
-    return topic.replaceAll('/', '.');
+    return topic.replace(/\//g, '.');
   }
 
   // Transforms a SingalK data object as an MQTT message

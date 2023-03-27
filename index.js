@@ -277,7 +277,6 @@ module.exports = function (app) {
 
     // Topic wasn't subscribed yet
     app.debug('New subscription to topic ' + topic);
-   
     var topicParts = topic.split('/');
     if (topicParts[1] == "self") {
       sk_path = topicParts.slice(2).join('.');
@@ -285,10 +284,15 @@ module.exports = function (app) {
       sk_path = topicParts.join('.');
     }
   
-    unsubscribe =app.streambundle
-      .getBus(sk_path)
-      .onValue(handleDelta);
-  
+    if (topic == "#"){
+        unsubscribe =app.streambundle
+          .getBus()
+          .onValue(handleDelta);    
+    } else{
+        unsubscribe =app.streambundle
+          .getBus(sk_path)
+          .onValue(handleDelta);
+    }  
     plugin.subscriptions.push({
       topic: topic,
       expires: getNow() + plugin.keepaliveTtl,

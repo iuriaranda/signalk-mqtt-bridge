@@ -1,4 +1,4 @@
-const mqtt = require('mqtt');
+const mqtt = require('mqtt'); 
 const _ = require('underscore');
 
 module.exports = function (app) {
@@ -33,7 +33,7 @@ module.exports = function (app) {
         title: 'TTL of the MQTT keepalive in seconds',
         default: 60
       }
-    }
+    } 
   };
 
   // Functions to call when the plugin stops
@@ -89,19 +89,16 @@ module.exports = function (app) {
         plugin.expireSubscriptionsInterval = undefined;
       });
     }
+ }
 
-    // Setup SignalK delta subscription
-    plugin.onStop.push(app.streambundle
-      .getBus()
-      .debounceImmediate(500)
-      .onValue(handleDelta));
-  };
+//      .debounceImmediate(500)
 
   // Handle plugin stop
   plugin.stop = function () {
-    plugin.onStop.forEach(f => f());
-    plugin.onStop = [];
-
+    for (var i = 0; i < plugin.subscriptions.length; i++) {
+        plugin.subscriptions[i].unsubscribe();
+        
+    }
     app.debug('Plugin stopped');
   };
 
@@ -190,8 +187,9 @@ module.exports = function (app) {
     }
 
     if (!topicIsSubscribed(subTopic)) {
-      // No subscriptions for this topic. Ignoring
-      return;
+      
+    app.debug('No subscription for this topic: ' + subTopic);
+     return;
     }
 
     app.debug('Got delta for topic ' + subTopic);
@@ -279,9 +277,22 @@ module.exports = function (app) {
 
     // Topic wasn't subscribed yet
     app.debug('New subscription to topic ' + topic);
+   
+    var topicParts = topic.split('/');
+    if (topicParts[1] == "self") {
+      sk_path = topicParts.slice(2).join('.');
+    } else {
+      sk_path = topicParts.join('.');
+    }
+  
+    unsubscribe =app.streambundle
+      .getBus(sk_path)
+      .onValue(handleDelta);
+  
     plugin.subscriptions.push({
       topic: topic,
-      expires: getNow() + plugin.keepaliveTtl
+      expires: getNow() + plugin.keepaliveTtl,
+      unsubscribe: unsubscribe
     });
   }
 
@@ -291,6 +302,7 @@ module.exports = function (app) {
     for (var i = plugin.subscriptions.length - 1; i > -1; i--) {
       if (plugin.subscriptions[i].expires < getNow()) {
         app.debug('Expiring subscription to topic ' + plugin.subscriptions[i].topic);
+        plugin.subscriptions[i].unsubscribe();
         plugin.subscriptions.splice(i, 1);
       }
     }

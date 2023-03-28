@@ -93,7 +93,6 @@ module.exports = function (app) {
     // Setup SignalK delta subscription
     plugin.onStop.push(app.streambundle
       .getBus()
-      .debounceImmediate(500)
       .onValue(handleDelta));
   };
 

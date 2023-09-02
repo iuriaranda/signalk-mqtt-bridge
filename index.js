@@ -11,6 +11,12 @@ module.exports = function (app) {
   // Infer system id
   // If mmsi is set, this will match the mmsi
   // If mmsi is not set, this will be the last segment of the generated uuid
+  if (app.selfId === undefined) {
+    var uuidErrorMessage = 'No UUID nor MMSI are configured. Please configure either an UUID or MMSI in SignalK server settings to use this plugin';
+    app.error(uuidErrorMessage);
+    app.setPluginError(uuidErrorMessage);
+  }
+
   plugin.systemId = app.selfId.split(':').pop().split('-').pop();
 
   plugin.schema = {

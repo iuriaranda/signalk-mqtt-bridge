@@ -241,11 +241,16 @@ module.exports = function (app) {
       if (resp.statusCode > 299) app.debug('Error in PUT request (' + resp.statusCode + ' - ' + resp.state + '): ' + resp.message);
     };
 
+    var value = Number(message);
+    if (isNaN(message)) {
+      value = message;
+    }
+
     var topicParts = topic.split('/');
     if (topicParts[1] == "self") {
-      app.putSelfPath(topicParts.slice(2).join('.'), message, putCb);
+      app.putSelfPath(topicParts.slice(2).join('.'), value, putCb);
     } else {
-      app.putPath(topicParts.join('.'), message, putCb);
+      app.putPath(topicParts.join('.'), value, putCb);
     }
   }
 

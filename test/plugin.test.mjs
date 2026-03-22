@@ -1,8 +1,8 @@
-const { expect } = require('chai');
-const mqtt = require('mqtt');
-const pluginFactory = require('../index');
-const { createAppMock } = require('./helpers/appMock');
-const { startBroker } = require('./helpers/brokerSetup');
+import { expect } from 'chai';
+import mqtt from 'mqtt';
+import pluginFactory from '../index.js';
+import { createAppMock } from './helpers/appMock.mjs';
+import { startBroker } from './helpers/brokerSetup.mjs';
 
 const SELF_ID = 'urn:mrn:signalk:uuid:2bb1928e-3118-415e-b242-4881db477e55';
 const SYSTEM_ID = '4881db477e55';

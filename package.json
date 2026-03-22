@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "aedes": "^0.51.0",
-    "chai": "^4.0.0",
+    "chai": "^6.0.0",
     "mocha": "^10.0.0",
     "sinon": "^17.0.0"
   },

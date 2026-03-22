@@ -1,5 +1,5 @@
-const aedes = require('aedes');
-const net = require('net');
+import { Aedes } from 'aedes';
+import net from 'net';
 
 function getFreePort() {
   return new Promise((resolve, reject) => {
@@ -14,7 +14,7 @@ function getFreePort() {
 
 async function startBroker() {
   const port = await getFreePort();
-  const broker = aedes();
+  const broker = await Aedes.createBroker();
   const server = net.createServer((conn) => broker.handle(conn));
   await new Promise((resolve, reject) =>
     server.listen(port, (err) => err ? reject(err) : resolve())
@@ -28,4 +28,4 @@ async function startBroker() {
   };
 }
 
-module.exports = { startBroker };
+export { startBroker };

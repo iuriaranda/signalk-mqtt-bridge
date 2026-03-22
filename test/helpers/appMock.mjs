@@ -1,5 +1,5 @@
-const sinon = require('sinon');
-const EventEmitter = require('events');
+import sinon from 'sinon';
+import { EventEmitter } from 'events';
 
 function createAppMock(selfId = 'urn:mrn:signalk:uuid:2bb1928e-3118-415e-b242-4881db477e55') {
   const bus = new EventEmitter();
@@ -25,4 +25,4 @@ function createAppMock(selfId = 'urn:mrn:signalk:uuid:2bb1928e-3118-415e-b242-48
   };
 }
 
-module.exports = { createAppMock };
+export { createAppMock };

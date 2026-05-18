@@ -49,7 +49,7 @@ describe('signalk-mqtt-bridge', function () {
 
   async function startPlugin(app, options = {}) {
     const plugin = pluginFactory(app);
-    plugin.start({ mqttBrokerAddress: brokerCtx.url, keepaliveTtl: 60, ...options });
+    plugin.start({ mqttBrokerAddress: brokerCtx.url, keepaliveTtl: 60, publishInterval: 1, ...options });
     await waitFor(() => app.setPluginStatus.calledWith('MQTT Connected'));
     return plugin;
   }
@@ -448,6 +448,86 @@ describe('signalk-mqtt-bridge', function () {
       } finally {
         plugin2.stop();
       }
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // I. Delta buffering
+  // ---------------------------------------------------------------------------
+
+  describe('I. Delta buffering', function () {
+    let app, plugin;
+
+    beforeEach(async function () {
+      app = createAppMock(SELF_ID);
+      plugin = await startPlugin(app);  // publishInterval: 1 by default
+    });
+
+    afterEach(function () {
+      if (plugin) { plugin.stop(); plugin = null; }
+    });
+
+    it('delta is NOT published immediately while buffered', async function () {
+      await sendKeepalive();
+      messages = [];
+      app._emitDelta(selfDelta('navigation.speedOverGround', 3.5));
+      await delay(500);   // less than 1 s flush interval
+      expect(messages.filter(m => m.topic.includes('navigation/speedOverGround'))).to.be.empty;
+    });
+
+    it('buffered delta IS published after the flush interval', async function () {
+      await sendKeepalive();
+      messages = [];
+      app._emitDelta(selfDelta('navigation.speedOverGround', 3.5));
+      await waitFor(() => messages.some(m => m.topic.includes('navigation/speedOverGround')));
+    });
+
+    it('multiple deltas for same topic: only last value is published (last-write-wins)', async function () {
+      await sendKeepalive();
+      messages = [];
+      app._emitDelta(selfDelta('navigation.speedOverGround', 1.0));
+      app._emitDelta(selfDelta('navigation.speedOverGround', 2.0));
+      app._emitDelta(selfDelta('navigation.speedOverGround', 3.0));
+      await waitFor(() => messages.some(m => m.topic.includes('navigation/speedOverGround')));
+      const published = messages.filter(m => m.topic.includes('navigation/speedOverGround'));
+      expect(published).to.have.length(1);
+      expect(JSON.parse(published[0].payload).value).to.equal(3.0);
+    });
+
+    it('deltas for different topics are all published on flush', async function () {
+      await sendKeepalive();
+      messages = [];
+      app._emitDelta(selfDelta('navigation.speedOverGround', 1.0));
+      app._emitDelta(selfDelta('navigation.headingTrue', 2.0));
+      await waitFor(() =>
+        messages.some(m => m.topic.includes('navigation/speedOverGround')) &&
+        messages.some(m => m.topic.includes('navigation/headingTrue'))
+      );
+    });
+
+    it('publishInterval: 0 publishes immediately without buffering', async function () {
+      plugin.stop();
+      plugin = null;
+      const app2 = createAppMock(SELF_ID);
+      const plugin2 = await startPlugin(app2, { publishInterval: 0 });
+      try {
+        await sendKeepalive();
+        messages = [];
+        app2._emitDelta(selfDelta('navigation.speedOverGround', 3.5));
+        await waitFor(() => messages.some(m => m.topic.includes('navigation/speedOverGround')), 1000);
+      } finally {
+        plugin2.stop();
+      }
+    });
+
+    it('buffered delta is NOT published after plugin is stopped', async function () {
+      await sendKeepalive();
+      messages = [];
+      app._emitDelta(selfDelta('navigation.speedOverGround', 9.9));
+      plugin.stop();
+      plugin = null;
+      await delay(1500);  // wait past where flush would have occurred
+      expect(messages.filter(m => m.topic.includes('navigation/speedOverGround'))).to.be.empty;
     });
   });
 });

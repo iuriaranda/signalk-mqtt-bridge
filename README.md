@@ -10,6 +10,7 @@ Note that this plugin doesn't have an embedded MQTT broker. It connects as a cli
 - [Scoped MQTT topics](#scoped-mqtt-topics)
 - [Keepalive mechanism](#keepalive) to avoid unnecessary load on the MQTT broker
 - [Send SignalK deltas to MQTT](#subscribe-to-signalk-deltas)
+- [Buffered publishing](#buffered-publishing) to reduce broker load from high-frequency sensors
 - [Request specific SignalK paths from MQTT](#request-signalk-data-from-mqtt)
 - [Push deltas to SignalK from MQTT](#send-deltas-to-signalk-via-mqtt)
 - [Send PUT requests to SignalK from MQTT](#send-put-requests-to-signalk-via-mqtt)
@@ -68,6 +69,12 @@ mosquitto_sub -t 'N/signalk/4881db477e55/vessels/self/#'
 # in a separate terminal
 while :; do mosquitto_pub -m '["vessels/self/#"]' -t 'R/signalk/4881db477e55/keepalive'; sleep 30; done
 ```
+
+## Buffered publishing
+
+By default, incoming SignalK deltas are not published to MQTT immediately. Instead, they are held in an in-memory buffer and flushed to the broker on a regular interval (10 seconds by default). When multiple updates arrive for the same topic before the flush, only the latest value is kept (last-write-wins), reducing redundant messages for high-frequency sensors.
+
+The interval is controlled by the `publishInterval` option in the plugin configuration (in seconds). Setting it to `0` or a negative value disables buffering entirely and publishes each delta immediately as it arrives.
 
 ## Request SignalK data from MQTT
 

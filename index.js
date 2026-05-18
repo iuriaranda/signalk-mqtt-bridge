@@ -32,6 +32,11 @@ module.exports = function (app) {
         type: 'number',
         title: 'TTL of the MQTT keepalive in seconds',
         default: 60
+      },
+      publishInterval: {
+        type: 'number',
+        title: 'How often to publish buffered deltas to MQTT (in seconds). Set to 0 or less to publish immediately without buffering.',
+        default: 10
       }
     }
   };
@@ -53,9 +58,12 @@ module.exports = function (app) {
     }
 
     plugin.keepaliveTtl = parseInt(options.keepaliveTtl) || plugin.schema.properties.keepaliveTtl.default;
+    const parsedInterval = parseFloat(options.publishInterval);
+    plugin.publishInterval = isNaN(parsedInterval) ? plugin.schema.properties.publishInterval.default : parsedInterval;
 
     // Initialize delta subscriptions
     plugin.subscriptions = [];
+    plugin.deltaBuffer = new Map(); // topic → message (last-write-wins)
 
     // Connect to mqtt broker
     plugin.client = mqtt.connect(options.mqttBrokerAddress, {
@@ -94,6 +102,23 @@ module.exports = function (app) {
       plugin.onStop.push(() => {
         clearInterval(plugin.expireSubscriptionsInterval);
         plugin.expireSubscriptionsInterval = undefined;
+      });
+    }
+
+    // Flush buffered deltas to MQTT on a configurable interval
+    if (plugin.publishInterval > 0) {
+      plugin.publishIntervalTimer = setInterval(() => {
+        if (plugin.deltaBuffer.size === 0) return;
+        plugin.deltaBuffer.forEach((message, topic) => {
+          publishMqtt(topic, message);
+        });
+        plugin.deltaBuffer.clear();
+      }, plugin.publishInterval * 1000);
+
+      plugin.onStop.push(() => {
+        clearInterval(plugin.publishIntervalTimer);
+        plugin.publishIntervalTimer = undefined;
+        plugin.deltaBuffer = new Map();
       });
     }
 
@@ -200,10 +225,13 @@ module.exports = function (app) {
       return;
     }
 
-    app.debug('Got delta for topic ' + subTopic);
-
-    // Publish message
-    publishMqtt('N/signalk/' + plugin.systemId + '/' + subTopic, signalkDeltaToMqttMessage(delta));
+    if (plugin.publishInterval > 0) {
+      app.debug('Buffering delta for topic ' + subTopic);
+      plugin.deltaBuffer.set('N/signalk/' + plugin.systemId + '/' + subTopic, signalkDeltaToMqttMessage(delta));
+    } else {
+      app.debug('Publishing delta for topic ' + subTopic);
+      publishMqtt('N/signalk/' + plugin.systemId + '/' + subTopic, signalkDeltaToMqttMessage(delta));
+    }
   }
 
   // Handles writes from MQTT into SignalK

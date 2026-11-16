@@ -20,7 +20,7 @@
     "aedes": "^1.0.0",
     "chai": "^6.0.0",
     "mocha": "^11.0.0",
-    "sinon": "^21.0.0"
+    "sinon": "^22.0.0"
   },
   "repository": {
     "type": "git",

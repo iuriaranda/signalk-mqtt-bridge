@@ -10,7 +10,7 @@
   "author": "Iuri Aranda <iuri.aranda@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "mqtt": "^4.3.7",
+    "mqtt": "^5.0.0",
     "underscore": "^1.13.6"
   },
   "scripts": {
